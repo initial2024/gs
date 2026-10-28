@@ -1,0 +1,11 @@
+*.apk
+*.aab
+*.jks
+*.keystore
+*.p12
+base.apk
+candidate-*.apk
+build/
+dist/
+__pycache__/
+*.pyc
