@@ -1,0 +1,128 @@
+name: Build patched APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_apk_url:
+        description: Direct HTTPS URL to DSH0.4.1-v70 base APK
+        required: true
+        type: string
+      expected_sha256:
+        description: Expected base APK SHA-256
+        required: true
+        default: d12735f679bdac29bd4f3c17425c738e0340aeae376f71eb675ad28cb878a430
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download exact base APK
+        env:
+          BASE_APK_URL: ${{ inputs.base_apk_url }}
+          EXPECTED_SHA256: ${{ inputs.expected_sha256 }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --retry-delay 2 "$BASE_APK_URL" -o base.apk
+          actual="$(sha256sum base.apk | awk '{print $1}')"
+          echo "BASE_SHA256=$actual"
+          test "$actual" = "$EXPECTED_SHA256"
+
+      - name: Patch browser asset only
+        run: |
+          set -euo pipefail
+          python3 scripts/patch_apk.py             --base base.apk             --out candidate-unaligned.apk
+
+      - name: Verify content invariants before signing
+        run: |
+          set -euo pipefail
+          python3 scripts/verify_apk.py             --base base.apk             --candidate candidate-unaligned.apk
+
+      - name: Syntax-check patched browser tool
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/browser-tool
+          mkdir -p /tmp/browser-tool
+          python3 - <<'PY'
+          import io, zipfile
+          with zipfile.ZipFile("candidate-unaligned.apk") as apk:
+              nested = apk.read("assets/browser-tool.zip")
+          with zipfile.ZipFile(io.BytesIO(nested)) as z:
+              z.extractall("/tmp/browser-tool")
+          PY
+          node --check /tmp/browser-tool/lib/index.js
+          grep -q '"version": "1.1.0"' /tmp/browser-tool/package.json
+
+      - name: Locate Android build tools
+        id: android
+        run: |
+          set -euo pipefail
+          root="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          test -n "$root"
+          tools="$(find "$root/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+          test -x "$tools/zipalign"
+          test -x "$tools/apksigner"
+          echo "tools=$tools" >> "$GITHUB_OUTPUT"
+          "$tools/apksigner" version
+
+      - name: Zipalign
+        run: |
+          set -euo pipefail
+          "${{ steps.android.outputs.tools }}/zipalign"             -p -f 4 candidate-unaligned.apk candidate-aligned.apk
+          "${{ steps.android.outputs.tools }}/zipalign"             -c -p 4 candidate-aligned.apk
+
+      - name: Generate disposable test signing key
+        run: |
+          set -euo pipefail
+          keytool -genkeypair             -keystore gs-test.p12             -storetype PKCS12             -storepass gs-browser-test             -keypass gs-browser-test             -alias gs-browser             -keyalg RSA             -keysize 3072             -validity 3650             -dname "CN=DSH Browser GS Test,O=initial2024,C=CN"
+
+      - name: Sign with APK Signature Scheme v2/v3
+        run: |
+          set -euo pipefail
+          "${{ steps.android.outputs.tools }}/apksigner" sign             --ks gs-test.p12             --ks-type PKCS12             --ks-key-alias gs-browser             --ks-pass pass:gs-browser-test             --key-pass pass:gs-browser-test             --v1-signing-enabled false             --v2-signing-enabled true             --v3-signing-enabled true             --out DSH0.4.1-v70-browser-enhanced-test.apk             candidate-aligned.apk
+
+      - name: Verify APK signature
+        run: |
+          set -euo pipefail
+          "${{ steps.android.outputs.tools }}/apksigner" verify             --verbose             --print-certs             DSH0.4.1-v70-browser-enhanced-test.apk | tee APKSIGNER_VERIFY.txt
+          grep -q 'Verified using v2 scheme (APK Signature Scheme v2): true' APKSIGNER_VERIFY.txt
+
+      - name: Verify signed APK still changed only browser-tool content
+        run: |
+          set -euo pipefail
+          python3 scripts/verify_apk.py             --base base.apk             --candidate DSH0.4.1-v70-browser-enhanced-test.apk
+
+      - name: Build receipt
+        run: |
+          set -euo pipefail
+          {
+            echo "BASE_SHA256=$(sha256sum base.apk | awk '{print $1}')"
+            echo "APK_SHA256=$(sha256sum DSH0.4.1-v70-browser-enhanced-test.apk | awk '{print $1}')"
+            echo "ONLY_CHANGED_ZIP_ENTRY=assets/browser-tool.zip"
+            echo "CLASSES_DEX_UNCHANGED=YES"
+            echo "BROWSER_PANE_UNCHANGED=YES"
+            echo "BROWSER_TOOL_VERSION=1.1.0"
+            echo "SIGNING=TEST_EPHEMERAL_V2_V3"
+            echo "NETWORK_UA_SWITCH=NOT_YET_NATIVE"
+          } | tee BUILD_RECEIPT.txt
+          sha256sum DSH0.4.1-v70-browser-enhanced-test.apk > SHA256SUMS.txt
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DSH0.4.1-v70-browser-enhanced-test
+          path: |
+            DSH0.4.1-v70-browser-enhanced-test.apk
+            SHA256SUMS.txt
+            BUILD_RECEIPT.txt
+            APKSIGNER_VERIFY.txt
+          if-no-files-found: error
+          retention-days: 30
