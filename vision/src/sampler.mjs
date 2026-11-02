@@ -94,7 +94,10 @@ export function createFrameSampler(options={}, {now=()=>performance.now()}={}){
     if(!matches(scope,incoming)){
       stop();return {propose:false,reason:'SCOPE_CHANGED_STOPPED'};
     }
-    const t=now();
+    // A broken native monotonic clock must not preserve an armed sampler.
+    let t;
+    try{t=now();}
+    catch{stop();return {propose:false,reason:'MONOTONIC_CLOCK_FAILURE_STOPPED'};}
     if(!Number.isFinite(t)||t<0||(lastNow!==null&&t<lastNow)){
       stop();return {propose:false,reason:'MONOTONIC_CLOCK_FAILURE_STOPPED'};
     }
@@ -103,7 +106,11 @@ export function createFrameSampler(options={}, {now=()=>performance.now()}={}){
       minuteStart=t;frames=0;proposals=0;tokenEstimate=0;
     }
     if(frames>=p.maxFramesPerMinute)return {propose:false,reason:'FRAME_RATE_QUOTA'};
-    const next=fingerprintFrame(frame);
+    // Malformed or oversized native frames are a broken trust boundary:
+    // clear in-memory fingerprint and stop rather than keeping analysis armed.
+    let next;
+    try{next=fingerprintFrame(frame);}
+    catch{stop();return {propose:false,reason:'INVALID_FRAME_STOPPED'};}
     frames++;
     const initial=keyframe===null;
     const score=initial?100:scoreFingerprints(keyframe,next);

@@ -99,3 +99,21 @@ test('no model wakeup, network or writable artifact exists in source-only API',(
   assert.deepEqual(keys,['arm','ingest','status','stop']);
   assert.deepEqual(r.sampler.stop(),{ok:true,status:'OFF'});
 });
+
+test('malformed frame aborts local sampling and clears previous state',()=>{
+  const r=rig();r.sampler.arm(scope);r.add(0);
+  r.at(5000);
+  assert.equal(r.sampler.ingest({scope,frame:{
+    width:3,height:3,format:'RGBA8888',pixels:new Uint8Array(2)
+  }}).reason,'INVALID_FRAME_STOPPED');
+  assert.equal(r.sampler.status().mode,'OFF');
+  assert.equal(r.add(255).reason,'OFF');
+});
+test('monotonic clock exceptions fail closed without retaining scope',()=>{
+  let calls=0;
+  const sampler=createFrameSampler({}, {now:()=>{if(calls++===0)return 0;throw Error('CLOCK_FAILURE')}});
+  sampler.arm(scope);
+  sampler.ingest({scope,frame:image(0)});
+  assert.equal(sampler.ingest({scope,frame:image(255)}).reason,'MONOTONIC_CLOCK_FAILURE_STOPPED');
+  assert.equal(sampler.status().mode,'OFF');
+});
