@@ -1,0 +1,56 @@
+name: Native Browser vision sampler (source only)
+on:
+  push:
+    branches: [main, "feat/**"]
+    paths:
+      - "vision/**"
+      - "docs/SEE_NOW_ATTRIBUTION.md"
+      - "docs/NATIVE_VISION_HANDOFF.md"
+      - ".github/workflows/vision-sampler-tests.yml"
+  pull_request:
+    paths:
+      - "vision/**"
+      - "docs/SEE_NOW_ATTRIBUTION.md"
+      - "docs/NATIVE_VISION_HANDOFF.md"
+      - ".github/workflows/vision-sampler-tests.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  vision-source-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Syntax check independent JS modules
+        run: |
+          node --check vision/src/frame-diff.mjs
+          node --check vision/src/sampler.mjs
+          node --check vision/src/native-adapter.mjs
+      - name: Run frame-scoring and consent-limit unit tests
+        run: node --test vision/test/*.test.mjs
+      - name: Prevent accidental desktop capture / wakeup dependencies
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          src = '\n'.join(f.read_text() for f in Path('vision/src').glob('*.mjs'))
+          forbidden = (
+              "from 'node:child_process'",
+              'from "node:child_process"',
+              "from 'node:fs'",
+              'from "node:fs"',
+              "from 'node:net'",
+              "from 'node:http'",
+              "ctx.tools.register(",
+              "ctx.on('llm/stream'",
+              "MediaProjectionManager.getMediaProjection",
+          )
+          for token in forbidden:
+              if token in src:
+                  raise SystemExit('PROHIBITED_DEPENDENCY=' + token)
+          assert 'NOT_CONNECTED' in src
+          print('NO_NATIVE_CAPTURE_OR_BACKGROUND_EXECUTION=PASS')
+          PY
