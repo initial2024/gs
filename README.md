@@ -100,3 +100,33 @@ js_user_agent_emulation = REAL
 network_user_agent_changed = FALSE
 native_read_click_type = REAL
 ```
+
+
+## 2026-11-02 · Native Browser Vision Sampler (source-only P0)
+
+An independently implemented, **non-installable** visual keyframe-selection
+library is available under [vision/](vision/README.md). It provides fixed-grid
+RGB luminance change scoring, an OFF-by-default local sampler, bounded frame
+proposals and a deliberately disconnected Android native screenshot interface.
+**It does not capture screens, upload pictures, wake a model or grant native
+permissions.** The old APK patcher, signing pipeline and browser assets have
+not been modified by this addition.
+
+**Explicit inspiration and copyright credit:** the *concept* of selecting
+visually changed keyframes to avoid redundant model image input was inspired
+by [SAOS-3624/dsh-see-now](https://github.com/SAOS-3624/dsh-see-now)
+(Copyright © 2026 SAOS-3624; upstream **PolyForm Noncommercial 1.0.0**).
+Our code is separately implemented using a distinct RGB-luminance approach;
+**no upstream source is copied**, including FFmpeg, HSV processing, Tkinter
+overlay, collage packing or model-wakeup implementation.
+
+Full scope-by-scope attribution: [docs/SEE_NOW_ATTRIBUTION.md](docs/SEE_NOW_ATTRIBUTION.md).
+Native integration checklist, APIs, consent and stop criteria:
+[docs/NATIVE_VISION_HANDOFF.md](docs/NATIVE_VISION_HANDOFF.md).
+
+To run source-only tests:
+
+    node --test vision/test/*.test.mjs
+
+**No Android plugin TGZ or signed APK should be issued for this feature until
+its real trusted native screenshot/consent/attachment path passes acceptance.**
