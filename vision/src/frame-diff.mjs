@@ -5,8 +5,9 @@
  * https://github.com/SAOS-3624/dsh-see-now
  * Borrowed idea: select visually changed frames rather than sending duplicates.
  * NOT borrowed: source code, HSV scoring, accumulation, FFmpeg, Tkinter,
- * collage packing, or session auto-wakeup. The upstream implementation is
- * licensed PolyForm Noncommercial 1.0.0; none of it is copied here.
+ * collage packing, or session auto-wakeup. Upstream changed from historical
+ * PolyForm Noncommercial 1.0.0 to Apache-2.0 at commit a0e3c5c
+ * (2026-11-02); none of its implementation is copied here.
  *
  * This analysis module DOES NOT capture screens or grant Android permissions.
  */

@@ -115,7 +115,7 @@ not been modified by this addition.
 **Explicit inspiration and copyright credit:** the *concept* of selecting
 visually changed keyframes to avoid redundant model image input was inspired
 by [SAOS-3624/dsh-see-now](https://github.com/SAOS-3624/dsh-see-now)
-(Copyright © 2026 SAOS-3624; upstream **PolyForm Noncommercial 1.0.0**).
+(Copyright © 2026 SAOS-3624; historically **PolyForm Noncommercial 1.0.0**, updated by upstream on 2026-11-02 in [a0e3c5c](https://github.com/SAOS-3624/dsh-see-now/commit/a0e3c5c725c91133cdbc4c4d7d90d50e31e01cc1) to **Apache-2.0**).
 Our code is separately implemented using a distinct RGB-luminance approach;
 **no upstream source is copied**, including FFmpeg, HSV processing, Tkinter
 overlay, collage packing or model-wakeup implementation.

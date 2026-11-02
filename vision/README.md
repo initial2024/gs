@@ -20,9 +20,11 @@ We DID NOT copy its source, its HSV weighted scoring, cut-point thresholds,
 motion integrator, DP grid packer, ffmpeg capture, Tkinter overlay, conversational
 session wakeup or timer implementations. This project uses an independently
 written fixed-grid RGB luminance difference scorer and a manual proposal
-planner. Upstream retains its original **PolyForm Noncommercial 1.0.0**
-license and Copyright © 2026 SAOS-3624. Attribution is NOT a license grant for
-commercial reuse of upstream source. See docs/SEE_NOW_ATTRIBUTION.md.
+planner. Upstream is Copyright © 2026 SAOS-3624. Earlier revisions used
+**PolyForm Noncommercial 1.0.0**; upstream changed the license to **Apache-2.0**
+on 2026-11-02 ([a0e3c5c](https://github.com/SAOS-3624/dsh-see-now/commit/a0e3c5c725c91133cdbc4c4d7d90d50e31e01cc1)).
+License obligations depend on the exact source revision: confirm its LICENSE
+and NOTICE before importing anything; no upstream code was imported here. See docs/SEE_NOW_ATTRIBUTION.md.
 
 ### Files
 

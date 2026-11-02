@@ -110,8 +110,10 @@ Example **analysis-only**:
   static page generates no repeated image uploads.
 - Regression: original open/read/click/type/screenshot + DSH stream + relay
   still work; no new 409 runtime owner mismatch.
-- Licensing: original SAOS-3624 credit retained; no copied upstream
-  PolyForm-restricted code in the distributed package.
+- Licensing: original SAOS-3624 credit retained; no upstream code currently
+  copied. Upstream changed historical PolyForm Noncommercial to Apache-2.0 at
+  a0e3c5c (2026-11-02); audit the exact revision, LICENSE and NOTICE before
+  any future source reuse or distribution.
 - Release only when all production native gates PASS. Until then
   NATIVE_VISION_BRIDGE_NOT_CONNECTED and NO installable plugin or APK.
 

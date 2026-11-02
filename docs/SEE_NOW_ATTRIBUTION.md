@@ -5,8 +5,9 @@ https://github.com/SAOS-3624/dsh-see-now
 
 **Original author:** SAOS-3624
 **Original copyright:** Copyright © 2026 SAOS-3624
-**Original source license:** PolyForm Noncommercial License 1.0.0
-https://github.com/SAOS-3624/dsh-see-now/blob/main/LICENSE
+**Upstream license (current, verified 2026-11-02):** Apache License 2.0 ([license change a0e3c5c](https://github.com/SAOS-3624/dsh-see-now/commit/a0e3c5c725c91133cdbc4c4d7d90d50e31e01cc1)).
+**Historical upstream license (earlier commits):** PolyForm Noncommercial License 1.0.0.
+Current LICENSE: https://github.com/SAOS-3624/dsh-see-now/blob/main/LICENSE
 **Original required notices:** https://github.com/SAOS-3624/dsh-see-now/blob/main/NOTICE
 
 ## Precisely what was borrowed conceptually
@@ -50,11 +51,14 @@ These are general software design concepts, not a copy of the original code.
 
 ## License and attribution rules for future maintainers
 
-- Attribution here is **not** an assertion that upstream source is MIT,
-  Apache-2.0, unrestricted, or available for any commercial usage.
-- Do **not** move SAOS-3624 files into this repository, translate code, or
-  relicense their works without checking the upstream PolyForm Noncommercial
-  terms and obtaining permission for uses outside its permitted scope.
+- The current upstream repository identifies its code as **Apache-2.0** in
+  LICENSE, NOTICE and package.json. This is **not** a claim that every historical
+  revision has the same terms or that third-party media/dependencies are covered.
+- Do **not** move SAOS-3624 files into this repository, translate source, or
+  relicense upstream works without checking the precise reused revision and
+  applicable LICENSE/NOTICE, including older PolyForm Noncommercial restrictions.
+  For Apache-2.0-covered copies or adaptations, preserve required license,
+  copyright, modification and NOTICE information.
 - Keep these attribution notes in README/docs/code headers when evolving the
   independent feature; credit the conceptual inspiration accurately.
 - If a future contributor chooses to actually incorporate upstream code, stop
